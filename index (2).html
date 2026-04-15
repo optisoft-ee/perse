@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="et">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Eesti sõimugeneraator</title>
+  <meta name="description" content="Teaduslik lähenemine eesti vandesõnadele. Vali vanuserühm, genereeri autentne sõimukombo.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,700&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #f5f3ef; --surface: #ffffff; --surface2: #eeeae4; --border: #ddd9d1;
+      --text: #1a1714; --muted: #7a746a; --accent: #c0392b; --accent-h: #a93226;
+      --accent-bg: #fdf0ee; --serif: 'Playfair Display', Georgia, serif; --sans: 'Inter', system-ui, sans-serif;
+    }
+    html { font-size: 16px; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); min-height: 100vh; display: flex; flex-direction: column; }
+    .top-stripe { height: 5px; background: linear-gradient(90deg, #c0392b 0%, #6d4fc2 100%); }
+    header { padding: 2.5rem 2rem 0; max-width: 660px; margin: 0 auto; width: 100%; }
+    .eyebrow { font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.75rem; }
+    h1 { font-family: var(--serif); font-size: clamp(2rem, 6vw, 3.2rem); font-weight: 700; line-height: 1.1; color: var(--text); margin-bottom: 0.75rem; }
+    h1 em { font-style: italic; color: var(--accent); }
+    .subtitle { font-size: 14px; color: var(--muted); line-height: 1.6; max-width: 420px; }
+    .subtitle a { color: var(--muted); text-decoration: underline; text-underline-offset: 3px; }
+    main { flex: 1; padding: 2.5rem 2rem 2rem; max-width: 660px; margin: 0 auto; width: 100%; }
+    .section-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; font-weight: 500; }
+    .age-grid { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin-bottom: 2rem; }
+    .age-btn { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 6px 10px; text-align: center; cursor: pointer; transition: border-color 0.15s, background 0.15s, box-shadow 0.15s; user-select: none; }
+    .age-btn:hover { border-color: #bbb; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+    .age-btn.active { border-color: var(--accent); background: var(--accent-bg); box-shadow: 0 0 0 3px rgba(192,57,43,0.10); }
+    .age-icon { font-size: 20px; display: block; margin-bottom: 5px; }
+    .age-range { font-size: 11px; color: var(--muted); display: block; }
+    .count-row { display: flex; align-items: center; gap: 12px; margin-bottom: 2rem; }
+    .count-label { font-size: 13px; color: var(--muted); }
+    .count-val { font-size: 15px; font-weight: 500; min-width: 22px; text-align: right; }
+    input[type="range"] { flex: 1; -webkit-appearance: none; appearance: none; height: 4px; background: var(--border); border-radius: 2px; outline: none; cursor: pointer; }
+    input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+    .gen-btn { width: 100%; padding: 14px; font-family: var(--sans); font-size: 15px; font-weight: 500; background: var(--accent); color: #fff; border: none; border-radius: 10px; cursor: pointer; margin-bottom: 1.5rem; transition: background 0.15s, transform 0.1s; box-shadow: 0 2px 10px rgba(192,57,43,0.25); }
+    .gen-btn:hover { background: var(--accent-h); }
+    .gen-btn:active { transform: scale(0.985); }
+    .output { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 2.5rem 2rem; min-height: 140px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; margin-bottom: 0.75rem; box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+    .result { font-family: var(--serif); font-size: clamp(2rem, 7vw, 3.4rem); font-weight: 700; color: var(--text); text-align: center; line-height: 1.2; word-break: break-word; }
+    .result.pop { animation: pop 0.24s cubic-bezier(.36,.07,.19,.97); }
+    @keyframes pop { 0% { transform: scale(0.86); opacity: 0.2; } 60% { transform: scale(1.05); } 100% { transform: scale(1); opacity: 1; } }
+    .age-tag { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--accent); font-weight: 500; }
+    .placeholder { font-size: 14px; color: #bbb; }
+    .copy-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; font-family: var(--sans); font-size: 12px; color: var(--muted); padding: 5px 12px; cursor: pointer; transition: background 0.12s; display: none; margin-bottom: 1.5rem; }
+    .copy-btn:hover { background: var(--border); }
+    .copy-btn.visible { display: inline-block; }
+    .stats-wrap { display: none; }
+    .stats-wrap.visible { display: block; }
+    .stats-title { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 10px; font-weight: 500; }
+    .bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; }
+    .bar-word { font-size: 12px; color: var(--text); width: 80px; flex-shrink: 0; }
+    .bar-track { flex: 1; background: var(--surface2); border-radius: 2px; height: 5px; overflow: hidden; }
+    .bar-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.55s ease; width: 0; }
+    .bar-pct { font-size: 11px; color: var(--muted); width: 30px; text-align: right; flex-shrink: 0; }
+    footer { padding: 1.5rem 2rem; max-width: 660px; margin: 0 auto; width: 100%; border-top: 1px solid var(--border); }
+    .footer-inner { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; }
+    .footer-note { font-size: 12px; color: #aaa; }
+    .footer-note a { color: #aaa; text-decoration: underline; text-underline-offset: 2px; }
+    @media (max-width: 480px) {
+      .age-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .footer-inner { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+<div class="top-stripe"></div>
+<header>
+  <p class="eyebrow">Keeleteadus rakenduses</p>
+  <h1>Eesti <em>sõimugeneraator</em></h1>
+  <p class="subtitle">Vanuserühmapõhine autentne sõimusõnavara. Andmed: eesti kõnekeele korpus. <a href="https://www.err.ee/1609968167/keeleteadlane-ropendamine-annab-vabanemise-tunde" target="_blank" rel="noopener">ERR 2024 ↗</a></p>
+</header>
+<main>
+  <p class="section-label">Vanuserühm</p>
+  <div class="age-grid" id="ageGrid">
+    <div class="age-btn active" data-age="10-19"><span class="age-icon">🧒</span><span class="age-range">10–19</span></div>
+    <div class="age-btn" data-age="20-29"><span class="age-icon">🎓</span><span class="age-range">20–29</span></div>
+    <div class="age-btn" data-age="30-39"><span class="age-icon">💼</span><span class="age-range">30–39</span></div>
+    <div class="age-btn" data-age="40-49"><span class="age-icon">🏠</span><span class="age-range">40–49</span></div>
+    <div class="age-btn" data-age="50-59"><span class="age-icon">🛋️</span><span class="age-range">50–59</span></div>
+    <div class="age-btn" data-age="60+"><span class="age-icon">🦯</span><span class="age-range">60+</span></div>
+  </div>
+  <p class="section-label">Sõnade arv</p>
+  <div class="count-row">
+    <span class="count-label">1</span>
+    <input type="range" id="countSlider" min="1" max="5" value="2" step="1">
+    <span class="count-label">5</span>
+    <span class="count-val" id="countVal">2</span>
+  </div>
+  <button class="gen-btn" id="genBtn">Genereeri</button>
+  <div class="output" id="output">
+    <span class="placeholder">Vali vanuserühm ja klõpsa nupul</span>
+  </div>
+  <button class="copy-btn" id="copyBtn">Kopeeri</button>
+  <div class="stats-wrap" id="statsWrap">
+    <p class="stats-title">Sagedasimad — <span id="statsAge"></span></p>
+    <div id="statsGrid"></div>
+  </div>
+</main>
+<footer>
+  <div class="footer-inner">
+    <span class="footer-note">perse.laht.net — osa <a href="https://laht.net" target="_blank">laht.net</a> kogumikust</span>
+    <span class="footer-note"><a href="https://www.err.ee/1609968167/keeleteadlane-ropendamine-annab-vabanemise-tunde" target="_blank" rel="noopener">Ropendamine annab vabanemise tunde — ERR</a></span>
+  </div>
+</footer>
+<script>
+const wordBanks = {
+  "10-19": { words: ["tra","tra","tra","tra","tra","krt","krt","krt","pask","pask","nahhui","nahhui","pekki","pekki","lits","fakk","persse","munn","hui","vittu","mv","mida vittu"], top: [["tra",38],["krt",14],["pask",9],["nahhui",9],["pekki",8],["lits",5]] },
+  "20-29": { words: ["tra","tra","tra","tra","persse","persse","persse","kurat","kurat","kurat","fuck","fuck","fakk","fakk","perse","perse","vittu","vittu","nahhui","nahhui","putsi","putsi","krt","krt","munn","mida vittu","mv","pekki","fucking","pede","hui","pask","kuradi"], top: [["tra",16],["persse",11],["kurat",10],["fuck",9],["fakk",8],["perse",7]] },
+  "30-39": { words: ["persse","persse","persse","persse","kurat","kurat","kurat","tra","tra","vittu","vittu","perse","perse","nahhui","nahhui","fakk","fakk","fuck","krt","munn","pask","putsi","kuradi"], top: [["persse",20],["kurat",16],["tra",11],["vittu",10],["perse",9],["nahhui",8]] },
+  "40-49": { words: ["kurat","kurat","kurat","kurat","kurat","kuradi","kuradi","persse","persse","perse","vittu","vittu","nahhui","nahhui","pask","pask","tra","krt","lits","fakk"], top: [["kurat",28],["kuradi",10],["persse",10],["vittu",9],["nahhui",8],["pask",7]] },
+  "50-59": { words: ["kurat","kurat","kurat","kurat","kurat","kuradi","kuradi","persse","persse","pagan","pagan","pask","pask","nahhui","vittu","lits","lits","perse","fakk"], top: [["kurat",30],["kuradi",11],["persse",10],["pagan",9],["pask",8],["lits",7]] },
+  "60+":   { words: ["kurat","kurat","kurat","kurat","kurat","kurat","kuradi","kuradi","pagan","pagan","pagan","pask","pask","persse","nahhui","lits","lits","perse","jumal küll","issand"], top: [["kurat",34],["pagan",14],["kuradi",11],["pask",9],["lits",8],["persse",6]] }
+};
+let selectedAge = "10-19", count = 2, lastResult = "";
+document.querySelectorAll(".age-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    document.querySelectorAll(".age-btn").forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    selectedAge = btn.dataset.age;
+    if (document.getElementById("statsWrap").classList.contains("visible")) renderStats(selectedAge);
+  });
+});
+const slider = document.getElementById("countSlider");
+const countVal = document.getElementById("countVal");
+slider.addEventListener("input", () => { count = parseInt(slider.value); countVal.textContent = count; });
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+document.getElementById("genBtn").addEventListener("click", () => {
+  const bank = wordBanks[selectedAge].words;
+  const words = [];
+  for (let i = 0; i < count; i++) {
+    let w; let t = 0;
+    do { w = pick(bank); t++; } while (words.includes(w) && t < 30);
+    words.push(w);
+  }
+  lastResult = words.join(" ").toUpperCase();
+  const out = document.getElementById("output");
+  out.innerHTML = `<span class="age-tag">${selectedAge}</span><span class="result pop" id="res">${lastResult}</span>`;
+  setTimeout(() => { const el = document.getElementById("res"); if (el) el.classList.remove("pop"); }, 300);
+  document.getElementById("copyBtn").classList.add("visible");
+  renderStats(selectedAge);
+  document.getElementById("statsWrap").classList.add("visible");
+});
+document.getElementById("copyBtn").addEventListener("click", () => {
+  if (!lastResult) return;
+  navigator.clipboard.writeText(lastResult).then(() => {
+    const btn = document.getElementById("copyBtn");
+    btn.textContent = "Kopeeritud ✓";
+    setTimeout(() => { btn.textContent = "Kopeeri"; }, 1800);
+  });
+});
+function renderStats(age) {
+  const top = wordBanks[age].top;
+  document.getElementById("statsAge").textContent = age;
+  const grid = document.getElementById("statsGrid");
+  grid.innerHTML = top.map(([word, pct]) => `<div class="bar-row"><span class="bar-word">${word}</span><div class="bar-track"><div class="bar-fill" id="bf-${word}" style="width:0%"></div></div><span class="bar-pct">${pct}%</span></div>`).join("");
+  requestAnimationFrame(() => { top.forEach(([word, pct]) => { const el = document.getElementById("bf-" + word); if (el) el.style.width = (pct * 2.5) + "%"; }); });
+}
+</script>
+</body>
+</html>
